@@ -5,7 +5,7 @@ from rest_framework import serializers
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = Authentication
-        fields = ('username', 'email', 'first_name', 'last_name', 'password', 'age', 'workpalce', 'gender', 'image')
+        fields = ('username', 'email', 'first_name', 'last_name', 'password', 'age', 'workplace', 'gender', 'image')
 
     def profile_update(self, instance, validated_data):
         instance.first_name = validated_data.get('first_name', instance.first_name)
