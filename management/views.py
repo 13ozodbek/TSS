@@ -1,9 +1,14 @@
 from math import floor
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework.viewsets import ViewSet
 import datetime
+
+from rest_framework_simplejwt.authentication import JWTAuthentication
+
 from .models import (Authentication,
                      OTP)
 from .serializers import (UserSerializer,
@@ -128,7 +133,7 @@ class Register(ViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class ResetAndUpdate(ViewSet):
+class ResetPassword(ViewSet):
     @swagger_auto_schema(
         operation_description="Reset password",
         operation_summary="Reset password, send OTP",
@@ -184,27 +189,28 @@ class ResetAndUpdate(ViewSet):
         return Response(serializer.errors,
                         status=status.HTTP_400_BAD_REQUEST)
 
+class UpdateProfile(ViewSet):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
     @swagger_auto_schema(
         operation_description="Update password",
         operation_summary="Update logged user's password",
+        request_body=UserSerializer,
         responses={200: ''},
         tags=['auth']
     )
-    def update_password(self, request):
-
-        data = request.data
+    def update_profile(self, request):
         user = request.user
-        if user.is_authenticated:
-            password = data['password']
-            repeat_password = data['password_repeat']
-            if password != repeat_password:
-                return Response({'error': 'Passwords do not match'},
-                                status=status.HTTP_400_BAD_REQUEST)
-            changed = Authentication.objects.filter(username=user.username).first()
-            changed.password = make_password(password)
-            changed.save(update_fields=['password'])
-            return Response('password changed',
-                            status=status.HTTP_200_OK)
+        serializer = UserSerializer(user, data=request.data)
+
+        if not user.is_authenticated:
+            return Response({'error': 'Not logged in'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response('user information changed', status=status.HTTP_200_OK)
+
+
         return Response({'error': 'User does not exist or not authorised'},
                         status=status.HTTP_400_BAD_REQUEST)
 
@@ -214,7 +220,7 @@ class Login(ViewSet):
         operation_description="Log in ",
         operation_summary="Login verified user",
         responses={200: 'access and refresh tokens'},
-        request_body=LoginSerializer(),
+        request_body=LoginSerializer,
         tags=['auth']
     )
     def login(self, request):
@@ -242,3 +248,7 @@ class Login(ViewSet):
 
         return Response(serializer.errors,
                         status=status.HTTP_400_BAD_REQUEST)
+
+
+class UserInfoView(APIView):
+    pass

@@ -19,7 +19,7 @@ class Authentication(AbstractUser):
     image = models.ImageField(upload_to='images/')
     age = models.IntegerField(default=1)
     gender = models.IntegerField(choices=gender_types, default=1)
-    workplace = models.CharField(max_length=255, default='Apple')
+    workpalce = models.CharField(max_length=255, default='Apple')
 
 
     is_verified = models.BooleanField(default=False)
