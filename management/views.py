@@ -193,8 +193,8 @@ class UpdateProfile(ViewSet):
     permission_classes = [IsAuthenticated]
     authentication_classes = [JWTAuthentication]
     @swagger_auto_schema(
-        operation_description="Update password",
-        operation_summary="Update logged user's password",
+        operation_description="Update profile",
+        operation_summary="Update user's info",
         request_body=UserSerializer,
         responses={200: ''},
         tags=['auth']
