@@ -1,4 +1,6 @@
 from math import floor
+
+import jwt
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
@@ -9,6 +11,7 @@ import datetime
 
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
+from config.settings import SECRET_KEY
 from .models import (Authentication,
                      OTP)
 from .serializers import (UserSerializer,
@@ -16,17 +19,16 @@ from .serializers import (UserSerializer,
                           OTPResendVerifySerializer,
                           ResetPasswordSerializer,
                           VerifyResettingSerializer,
-                          LoginSerializer)
+                          LoginSerializer,
+                          UpdateUserSerializer)
 
 from .utils import (check_otp_expire,
                     generate_random_number,
-                    send_otp_code)
+                    send_otp_code,
+                    token_expire)
 from django.contrib.auth.hashers import make_password, check_password
 from django.contrib.auth import login
 from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
-
-
-
 
 
 class Register(ViewSet):
@@ -38,19 +40,21 @@ class Register(ViewSet):
         tags=['auth']
     )
     def register(self, request):
-
         serializer = UserSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
-            if request.data['password_re'] != serializer.data['password']:
+            if serializer.validated_data['password_re'] != serializer.validated_data['password']:
                 return Response({'error': 'Passwords do not match'},
                                 status=status.HTTP_400_BAD_REQUEST)
 
             save_user_info = Authentication.objects.create(username=serializer.validated_data['username'],
-                                                           email=serializer.validated_data['email'],
                                                            password=make_password(
                                                                serializer.validated_data['password']),
                                                            first_name=serializer.validated_data['first_name'],
-                                                           last_name=serializer.validated_data['last_name'], )
+                                                           last_name=serializer.validated_data['last_name'],
+                                                           email=serializer.validated_data.get('email'),
+                                                           age=serializer.validated_data.get('age'),
+                                                           gender=serializer.validated_data.get('gender'),
+                                                           workplace=serializer.validated_data.get('workplace'), )
             save_user_info.save()
 
             otp = OTP.objects.create(otp_user=serializer.validated_data['username'],
@@ -189,27 +193,29 @@ class ResetPassword(ViewSet):
         return Response(serializer.errors,
                         status=status.HTTP_400_BAD_REQUEST)
 
+
 class UpdateProfile(ViewSet):
     permission_classes = [IsAuthenticated]
     authentication_classes = [JWTAuthentication]
+
     @swagger_auto_schema(
         operation_description="Update profile",
         operation_summary="Update user's info",
-        request_body=UserSerializer,
+        request_body=UpdateUserSerializer,
         responses={200: ''},
         tags=['auth']
     )
     def update_profile(self, request):
         user = request.user
-        serializer = UserSerializer(user, data=request.data)
+        serializer = UpdateUserSerializer(user, data=request.data)
 
         if not user.is_authenticated:
             return Response({'error': 'Not logged in'}, status=status.HTTP_400_BAD_REQUEST)
 
         if serializer.is_valid(raise_exception=True):
+            serializer.validated_data['password'] = make_password(serializer.validated_data['password'])
             serializer.save()
             return Response('user information changed', status=status.HTTP_200_OK)
-
 
         return Response({'error': 'User does not exist or not authorised'},
                         status=status.HTTP_400_BAD_REQUEST)
@@ -235,13 +241,23 @@ class Login(ViewSet):
                                   user.password):
                 return Response({'error': 'Passwords do not match'},
                                 status=status.HTTP_400_BAD_REQUEST)
-            access_token = AccessToken.for_user(user)
-            refresh_token = RefreshToken.for_user(user)
 
+
+
+            payload = {
+                'user_id': f'{user.id}',
+                'username': f'{user.username}',
+
+            }
+            token = jwt.encode(payload, SECRET_KEY, algorithm='HS256')
+
+
+            refresh_token = RefreshToken.for_user(user)
+            #access_token = AccessToken.for_user(user)
             login(request, user)
 
             return Response({'message': 'login successful',
-                             'access': f'{access_token}',
+                             'access': f'{token}',
                              'refresh': f'{refresh_token}'},
 
                             status=status.HTTP_200_OK)
@@ -250,5 +266,13 @@ class Login(ViewSet):
                         status=status.HTTP_400_BAD_REQUEST)
 
 
-class UserInfoView(APIView):
-    pass
+class UserInfoView(ViewSet):
+    def decode_token(self, request):
+        token = request.META.get['HTTP_AUTHORIZATION']
+        decoded_token = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
+        user = Authentication.objects.filter(username=decoded_token['username'], id=decoded_token['user_id']).first()
+
+        if user:
+            return Response(f"UserID {user.id}::First name  {user.first_name}::Username  {user.username}", status=status.HTTP_200_OK)
+
+        return Response({'error': 'Invalid token'}, status=status.HTTP_400_BAD_REQUEST)

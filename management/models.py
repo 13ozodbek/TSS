@@ -16,10 +16,10 @@ otp_types = (
 
 class Authentication(AbstractUser):
     username = models.CharField(unique=True, max_length=255)
-    image = models.ImageField(upload_to='images/')
-    age = models.IntegerField(default=1)
-    gender = models.IntegerField(choices=gender_types, default=1)
-    workplace = models.CharField(max_length=255, default='Apple')
+    image = models.ImageField(upload_to='images/', blank=True, null=True)
+    age = models.IntegerField(default=1, null=True)
+    gender = models.IntegerField(choices=gender_types, default=1, null=True)
+    workplace = models.CharField(max_length=255, default='Apple', null=True)
 
 
     is_verified = models.BooleanField(default=False)

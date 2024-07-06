@@ -1,7 +1,7 @@
 from django.urls import path
 from rest_framework_simplejwt.views import TokenRefreshView, TokenObtainPairView
 
-from .views import Register, Login, ResetPassword, UpdateProfile
+from .views import Register, Login, ResetPassword, UpdateProfile, UserInfoView
 
 urlpatterns = [
     path('api/refresh/', TokenRefreshView.as_view(), name='refresh'),
@@ -18,6 +18,8 @@ urlpatterns = [
     path('auth/update/', UpdateProfile.as_view({'post': 'update_profile'})),
 
     path('auth/login/', Login.as_view({'post': 'login'})),
+
+    path('decode/',UserInfoView.as_view({'post':'decode_token'}))
 
 
 
