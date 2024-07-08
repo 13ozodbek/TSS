@@ -248,7 +248,7 @@ class Login(ViewSet):
             #     'username': f'{user.username}',
             #
             # }
-            #token = jwt.encode(payload, SECRET_KEY, algorithm='HS256')
+            # token = jwt.encode(payload, SECRET_KEY, algorithm='HS256')
             token = AccessToken.for_user(user)
             refresh_token = RefreshToken.for_user(user)
             # access_token = AccessToken.for_user(user)
@@ -286,9 +286,10 @@ class UserInfoView(ViewSet):
     #     return Response({'error': 'Invalid token'}, status=status.HTTP_400_BAD_REQUEST)
 
     def decode_token(self, request, *args, **kwargs):
-        if not (request.user.is_authenticated or request.user.is_verified):
+        if not request.user.is_authenticated:
             return Response({'error': 'User does not exist or not verified'},
                             status=status.HTTP_400_BAD_REQUEST)
+
         token = request.META.get('HTTP_AUTHORIZATION', " ")
         if not token:
             return Response({'error': 'Token not found'},
