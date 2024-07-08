@@ -21,6 +21,11 @@ class UserSerializer(serializers.ModelSerializer):
             'gender',
             'image')
 
+        extra_kwargs = {
+            'password': {'write_only': True,
+                         'required': False},
+        }
+
 
 
 class UpdateUserSerializer(serializers.ModelSerializer):
