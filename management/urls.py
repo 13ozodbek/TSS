@@ -17,7 +17,7 @@ urlpatterns = [
 
     path('auth/update/', UpdateProfile.as_view({'patch': 'update_profile'})),
 
-    path('auth/login/', Login.as_view({'get': 'login'})),
+    path('auth/login/', Login.as_view({'post': 'login'})),
 
     path('auth_me/',UserInfoView.as_view({'get':'auth_me'})),
 
