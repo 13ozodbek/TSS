@@ -271,8 +271,8 @@ class UserInfoView(ViewSet):
     @swagger_auto_schema(
         operation_description="User info",
         operation_summary="Return user info by token",
-        responses={200: 'User ID, first_name, username'},
-        request_body=LoginSerializer,
+        responses={200: 'User Information'},
+        request_body=UserSerializer,
         tags=['auth']
     )
     # def decode_token(self, request):
