@@ -28,5 +28,3 @@ def check_otp_expire(otp_obj):
     if timezone.now() <= allowed_time:
         return True
 
-def token_expire():
-    expiration_time = timezone.now() + datetime.timedelta(hours=12)

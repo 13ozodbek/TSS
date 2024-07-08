@@ -1,14 +1,13 @@
 from math import floor
-
+from django.utils import timezone
 import jwt
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
-from rest_framework.views import APIView
 from rest_framework.viewsets import ViewSet
 import datetime
-
+from datetime import datetime
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from config.settings import SECRET_KEY
@@ -25,7 +24,7 @@ from .serializers import (UserSerializer,
 from .utils import (check_otp_expire,
                     generate_random_number,
                     send_otp_code,
-                    token_expire)
+                    )
 from django.contrib.auth.hashers import make_password, check_password
 from django.contrib.auth import login
 from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
@@ -213,7 +212,9 @@ class UpdateProfile(ViewSet):
             return Response({'error': 'Not logged in'}, status=status.HTTP_400_BAD_REQUEST)
 
         if serializer.is_valid(raise_exception=True):
-            serializer.validated_data['password'] = make_password(serializer.validated_data['password'])
+            password = serializer.validated_data.get('password')
+            if password:
+                serializer.validated_data['password'] = make_password(password)
             serializer.save()
             return Response('user information changed', status=status.HTTP_200_OK)
 
@@ -232,7 +233,7 @@ class Login(ViewSet):
     def login(self, request):
         serializer = LoginSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
-            user = Authentication.objects.filter(username=serializer.data['username']).first()
+            user = Authentication.objects.filter(username=serializer.validated_data['username']).first()
 
             if not (user or user.is_verified):
                 return Response({'error': 'User does not exist or not verified'})
@@ -242,18 +243,15 @@ class Login(ViewSet):
                 return Response({'error': 'Passwords do not match'},
                                 status=status.HTTP_400_BAD_REQUEST)
 
-
-
-            payload = {
-                'user_id': f'{user.id}',
-                'username': f'{user.username}',
-
-            }
-            token = jwt.encode(payload, SECRET_KEY, algorithm='HS256')
-
-
+            # payload = {
+            #     'user_id': f'{user.id}',
+            #     'username': f'{user.username}',
+            #
+            # }
+            #token = jwt.encode(payload, SECRET_KEY, algorithm='HS256')
+            token = AccessToken.for_user(user)
             refresh_token = RefreshToken.for_user(user)
-            #access_token = AccessToken.for_user(user)
+            # access_token = AccessToken.for_user(user)
             login(request, user)
 
             return Response({'message': 'login successful',
@@ -267,12 +265,39 @@ class Login(ViewSet):
 
 
 class UserInfoView(ViewSet):
-    def decode_token(self, request):
-        token = request.META.get['HTTP_AUTHORIZATION']
+    # permission_classes = [IsAdminUser]
+
+    # authentication_classes = [JWTAuthentication]
+    @swagger_auto_schema(
+        operation_description="User info",
+        operation_summary="Return user info by token",
+        responses={200: 'User ID, first_name, username'},
+        request_body=LoginSerializer,
+        tags=['auth']
+    )
+    # def decode_token(self, request):
+    #     token = request.META.get('HTTP_AUTHORIZATION')
+    #     decoded_token = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
+    #     user = Authentication.objects.filter(username=decoded_token['username'], id=decoded_token['user_id']).first()
+    #
+    #     if user:
+    #         return Response(f"UserID {user.id}::First name  {user.first_name}::Username  {user.username}",
+    #                         status=status.HTTP_200_OK)
+    #
+    #     return Response({'error': 'Invalid token'}, status=status.HTTP_400_BAD_REQUEST)
+
+    def decode_token(self, request, *args, **kwargs):
+        if not (request.user.is_authenticated or request.user.is_verified):
+            return Response({'error': 'User does not exist or not verified'},
+                            status=status.HTTP_400_BAD_REQUEST)
+        token = request.META.get('HTTP_AUTHORIZATION', " ")
+        if not token:
+            return Response({'error': 'Token not found'},
+                            status=status.HTTP_400_BAD_REQUEST)
+        token = token.split()[1]
         decoded_token = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
-        user = Authentication.objects.filter(username=decoded_token['username'], id=decoded_token['user_id']).first()
 
-        if user:
-            return Response(f"UserID {user.id}::First name  {user.first_name}::Username  {user.username}", status=status.HTTP_200_OK)
-
-        return Response({'error': 'Invalid token'}, status=status.HTTP_400_BAD_REQUEST)
+        id = decoded_token.get('user_id')
+        serializer = UserSerializer(Authentication.objects.filter(id=id).first())
+        return Response(serializer.data,
+                        status=status.HTTP_200_OK)

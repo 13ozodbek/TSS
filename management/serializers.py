@@ -21,6 +21,10 @@ class UpdateUserSerializer(serializers.ModelSerializer):
         fields = (
             'first_name', 'last_name', 'age', 'workplace', 'gender', 'image', 'password',
         )
+        extra_kwargs = {
+            'password': {'write_only': True, 'required': False},
+        }
+
     def profile_update(self, instance, validated_data):
         instance.first_name = validated_data.get('first_name', instance.first_name)
         instance.last_name = validated_data.get('last_name', instance.last_name)
@@ -29,13 +33,14 @@ class UpdateUserSerializer(serializers.ModelSerializer):
         instance.email = validated_data.get('email', instance.email)
         instance.age = validated_data.get('age', instance.age)
         instance.gender = validated_data.get('gender', instance.gender)
-        instance.password = make_password((validated_data.get('password')), instance.password)
+        #instance.password = make_password((validated_data.get('password')), instance.password)
         instance.save()
         return instance
 
 
 class OTPVerifySerializer(serializers.Serializer):
-    otp_code = serializers.IntegerField(min_value=1000, max_value=9999)
+    otp_code = serializers.IntegerField(min_value=1000,
+                                        max_value=9999)
     otp_user = serializers.CharField()
 
 
@@ -57,7 +62,8 @@ class ResetPasswordSerializer(serializers.Serializer):
 
 
 class VerifyResettingSerializer(serializers.Serializer):
-    otp_code = serializers.IntegerField(min_value=1000, max_value=9999)
+    otp_code = serializers.IntegerField(min_value=1000,
+                                        max_value=9999)
     username = serializers.CharField()
     password = serializers.CharField()
     password_repeat = serializers.CharField()

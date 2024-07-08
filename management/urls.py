@@ -15,11 +15,12 @@ urlpatterns = [
     path('auth/reset/', ResetPassword.as_view({'post': 'reset_password'})),
     path('auth/verify-resetting/', ResetPassword.as_view({'post': 'verify_resetting'})),
 
-    path('auth/update/', UpdateProfile.as_view({'post': 'update_profile'})),
+    path('auth/update/', UpdateProfile.as_view({'patch': 'update_profile'})),
 
     path('auth/login/', Login.as_view({'post': 'login'})),
 
-    path('decode/',UserInfoView.as_view({'post':'decode_token'}))
+    path('decode/',UserInfoView.as_view({'get':'decode_token'})),
+
 
 
 
