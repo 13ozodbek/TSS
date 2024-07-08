@@ -102,3 +102,6 @@ class VerifyResettingSerializer(serializers.Serializer):
 class LoginSerializer(serializers.Serializer):
     username = serializers.CharField()
     password = serializers.CharField()
+
+# class AuthMicroservicesSerializer(serializers.Serializer):
+#     uuid = serializers.CharField()

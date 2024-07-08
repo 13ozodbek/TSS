@@ -19,7 +19,8 @@ from .serializers import (UserSerializer,
                           ResetPasswordSerializer,
                           VerifyResettingSerializer,
                           LoginSerializer,
-                          UpdateUserSerializer)
+                          UpdateUserSerializer,
+                          )
 from .utils import (check_otp_expire,
                     generate_random_number,
                     send_otp_code,
@@ -263,11 +264,14 @@ class UserInfoView(ViewSet):
         operation_description="User info",
         operation_summary="Return user info by token",
         responses={200: 'User Information'},
+
         tags=['auth']
     )
     def auth_me(self, request, *args, **kwargs):
-        uuid_token = request.data.get('uuid_token')
-        check_authentication = requests.post('http://134.122.76.27:8114/api/v1/check/', json=uuid_token)
+        uuid = request.data['uuid']
+        check_data = {"token": f"{uuid}"}
+        check_authentication = requests.post('http://134.122.76.27:8114/api/v1/check/', json=check_data)
+
         if not check_authentication.status_code == 200:
             return Response({'error': 'Unidentified API'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -280,8 +284,8 @@ class UserInfoView(ViewSet):
 
         id = decoded_token.get('user_id')
         serializer = UserSerializer(Authentication.objects.filter(id=id).first())
-        if serializer:
-            return Response(serializer.data,
+
+        return Response(serializer.data,
                             status=status.HTTP_200_OK)
 
-        return Response(serializer.errors,)
+
