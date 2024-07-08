@@ -19,7 +19,7 @@ urlpatterns = [
 
     path('auth/login/', Login.as_view({'post': 'login'})),
 
-    path('auth/me/',UserInfoView.as_view({'get':'auth_me'})),
+    path('auth/me/',UserInfoView.as_view({'post':'auth_me'})),
 
 
 

@@ -1,5 +1,6 @@
 from math import floor
 import jwt
+import requests
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
@@ -265,7 +266,10 @@ class UserInfoView(ViewSet):
         tags=['auth']
     )
     def auth_me(self, request, *args, **kwargs):
-
+        uuid_token = request.data.get('uuid_token')
+        check_authentication = requests.post('http://134.122.76.27:8114/api/v1/check/', json=uuid_token)
+        if not check_authentication.status_code == 200:
+            return Response({'error': 'Unidentified API'}, status=status.HTTP_400_BAD_REQUEST)
 
         token = request.META.get('HTTP_AUTHORIZATION', " ")
         if not token:
@@ -276,5 +280,8 @@ class UserInfoView(ViewSet):
 
         id = decoded_token.get('user_id')
         serializer = UserSerializer(Authentication.objects.filter(id=id).first())
-        return Response(serializer.data,
-                        status=status.HTTP_200_OK)
+        if serializer:
+            return Response(serializer.data,
+                            status=status.HTTP_200_OK)
+
+        return Response(serializer.errors,)
