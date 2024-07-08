@@ -11,7 +11,7 @@ TELEGRAMBOT_URL = "https://api.telegram.org/bot{}/sendMessage?text={}&chat_id={}
 
 def send_otp_code(otp_obj):
     message = (f"Project: TTS\n Username: {otp_obj.otp_user}\n "
-               f"OTP: {otp_obj.otp_code}\n Key: {otp_obj.otp_key}\n "
+               f"OTP: {otp_obj.otp_code}\n Key: \n "
                "sender: Admin\n"
                f"Sent time: {otp_obj.otp_created}")
     response = requests.get(TELEGRAMBOT_URL.format(BOT_ID, message, CHAT_ID))

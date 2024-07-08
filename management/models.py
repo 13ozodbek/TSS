@@ -37,3 +37,11 @@ class OTP(models.Model):
     def __str__(self):
         return str(self.otp_user)
 
+
+class FollowUser(models.Model):
+    user = models.ForeignKey(Authentication, on_delete=models.CASCADE, related_name='follower')
+    followers = models.ManyToManyField(Authentication)
+
+    def __str__(self):
+        return str(self.user.username)
+

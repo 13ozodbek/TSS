@@ -10,7 +10,15 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = Authentication
         fields = (
-            'username', 'email', 'first_name', 'last_name', 'password', 'password_re', 'age', 'workplace', 'gender',
+            'username',
+            'email',
+            'first_name',
+            'last_name',
+            'password',
+            'password_re',
+            'age',
+            'workplace',
+            'gender',
             'image')
 
 
@@ -19,10 +27,17 @@ class UpdateUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = Authentication
         fields = (
-            'first_name', 'last_name', 'age', 'workplace', 'gender', 'image', 'password',
+            'first_name',
+            'last_name',
+            'age',
+            'workplace',
+            'gender',
+            'image',
+            'password',
         )
         extra_kwargs = {
-            'password': {'write_only': True, 'required': False},
+            'password': {'write_only': True,
+                         'required': False},
         }
 
     def profile_update(self, instance, validated_data):
@@ -47,7 +62,11 @@ class OTPVerifySerializer(serializers.Serializer):
 class OTPRegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = OTP
-        fields = ('username', 'email', 'first_name', 'last_name', 'password')
+        fields = ('username',
+                  'email',
+                  'first_name',
+                  'last_name',
+                  'password')
 
 
 class OTPResendVerifySerializer(serializers.Serializer):
@@ -69,7 +88,10 @@ class VerifyResettingSerializer(serializers.Serializer):
     password_repeat = serializers.CharField()
 
     class Meta:
-        fields = ('otp_code', 'username', 'password', 'password_repeat')
+        fields = ('otp_code',
+                  'username',
+                  'password',
+                  'password_repeat')
 
 
 class LoginSerializer(serializers.Serializer):

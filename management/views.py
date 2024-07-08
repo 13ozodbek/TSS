@@ -1,5 +1,4 @@
 from math import floor
-from django.utils import timezone
 import jwt
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
@@ -20,7 +19,6 @@ from .serializers import (UserSerializer,
                           VerifyResettingSerializer,
                           LoginSerializer,
                           UpdateUserSerializer)
-
 from .utils import (check_otp_expire,
                     generate_random_number,
                     send_otp_code,
@@ -243,15 +241,9 @@ class Login(ViewSet):
                 return Response({'error': 'Passwords do not match'},
                                 status=status.HTTP_400_BAD_REQUEST)
 
-            # payload = {
-            #     'user_id': f'{user.id}',
-            #     'username': f'{user.username}',
-            #
-            # }
-            # token = jwt.encode(payload, SECRET_KEY, algorithm='HS256')
             token = AccessToken.for_user(user)
             refresh_token = RefreshToken.for_user(user)
-            # access_token = AccessToken.for_user(user)
+
             login(request, user)
 
             return Response({'message': 'login successful',
@@ -265,29 +257,16 @@ class Login(ViewSet):
 
 
 class UserInfoView(ViewSet):
-    # permission_classes = [IsAdminUser]
 
-    # authentication_classes = [JWTAuthentication]
     @swagger_auto_schema(
         operation_description="User info",
         operation_summary="Return user info by token",
         responses={200: 'User Information'},
         tags=['auth']
     )
-    # def decode_token(self, request):
-    #     token = request.META.get('HTTP_AUTHORIZATION')
-    #     decoded_token = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
-    #     user = Authentication.objects.filter(username=decoded_token['username'], id=decoded_token['user_id']).first()
-    #
-    #     if user:
-    #         return Response(f"UserID {user.id}::First name  {user.first_name}::Username  {user.username}",
-    #                         status=status.HTTP_200_OK)
-    #
-    #     return Response({'error': 'Invalid token'}, status=status.HTTP_400_BAD_REQUEST)
-
-    def decode_token(self, request, *args, **kwargs):
+    def auth_me(self, request, *args, **kwargs):
         if not request.user.is_authenticated:
-            return Response({'error': 'User does not exist or not verified'},
+            return Response({'error': 'Not authenticated'},
                             status=status.HTTP_400_BAD_REQUEST)
 
         token = request.META.get('HTTP_AUTHORIZATION', " ")
