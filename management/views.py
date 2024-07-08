@@ -265,9 +265,7 @@ class UserInfoView(ViewSet):
         tags=['auth']
     )
     def auth_me(self, request, *args, **kwargs):
-        if not request.user.is_authenticated:
-            return Response({'error': 'Not authenticated'},
-                            status=status.HTTP_400_BAD_REQUEST)
+
 
         token = request.META.get('HTTP_AUTHORIZATION', " ")
         if not token:
