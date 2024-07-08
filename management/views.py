@@ -272,7 +272,6 @@ class UserInfoView(ViewSet):
         operation_description="User info",
         operation_summary="Return user info by token",
         responses={200: 'User Information'},
-        request_body=UserSerializer,
         tags=['auth']
     )
     # def decode_token(self, request):
