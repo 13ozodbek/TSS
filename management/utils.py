@@ -2,10 +2,9 @@ from django.utils import timezone
 import random
 import datetime
 import requests
-from django.core.exceptions import ValidationError
 
 BOT_ID = "7226631013:AAHhw95On7hqjGdmHryH4GQMzz82a6w8MjE"
-CHAT_ID = "584066666"  # TElegram guruh chat id kerak
+CHAT_ID = "584066666"#Ozodbekniki    #2081729348 guruhniki
 TELEGRAMBOT_URL = "https://api.telegram.org/bot{}/sendMessage?text={}&chat_id={}"
 
 

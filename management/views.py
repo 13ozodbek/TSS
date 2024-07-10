@@ -20,7 +20,7 @@ from .serializers import (UserSerializer,
                           VerifyResettingSerializer,
                           LoginSerializer,
                           UpdateUserSerializer,
-                          AuthMeSerializer
+                          AuthMeSerializer, UserOperationsSerializer
                           )
 from .utils import (check_otp_expire,
                     generate_random_number,
@@ -293,3 +293,75 @@ class UserInfoView(ViewSet):
 
         return Response(serializer.errors,
                         status=status.HTTP_400_BAD_REQUEST)
+
+
+class UserOperations(ViewSet):
+    @swagger_auto_schema(
+        operation_description="Operations on users",
+        operation_summary="Excecute requested operations",
+        responses={200: 'Operation is completed'},
+        request_body=AuthMeSerializer,
+        tags=['get']
+    )
+    def get_users(self, request):
+        serializer = AuthMeSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            token_uuid = serializer.data['token']
+            check_data = {"token": f"{token_uuid}"}
+            check_authentication = requests.post('http://134.122.76.27:8114/api/v1/check/',
+                                                 json=check_data)
+
+            if not check_authentication.status_code == 200:
+                return Response({'error': 'Unidentified API'},
+                                status=status.HTTP_400_BAD_REQUEST)
+
+            users = Authentication.objects.all()
+            return Response(users.data,
+                            status=status.HTTP_200_OK)
+
+    @swagger_auto_schema(
+        operation_description="Operations on users",
+        operation_summary="return user info",
+        responses={200: 'Operation is completed'},
+        request_body=UserOperationsSerializer,
+        tags=['get']
+    )
+    def get_user_by_id(self, request):
+
+        token_uuid = request.data['token']
+        check_data = {"token": f"{token_uuid}"}
+        check_authentication = requests.post('http://134.122.76.27:8114/api/v1/check/',
+                                             json=check_data)
+        if not check_authentication.status_code == 200:
+            return Response({'error': 'Unidentified API'},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        user = Authentication.objects.filter(id=request.data['user_id']).first()
+        if not user:
+            return Response({'error': 'User does not exist'},
+                            status=status.HTTP_400_BAD_REQUEST)
+        serializer = UserSerializer(user)
+        return Response(serializer.data,
+                        status=status.HTTP_200_OK)
+
+    @swagger_auto_schema(
+        operation_description="Operations on users",
+        operation_summary="delete user",
+        responses={200: 'Operation is completed'},
+        request_body=UserOperationsSerializer
+    )
+    def delete_user_by_id(self, request, pk):
+
+        token_uuid = request.data['token']
+        check_data = {"token": f"{token_uuid}"}
+        check_authentication = requests.post('http://134.122.76.27:8114/api/v1/check/',
+                                             json=check_data)
+        if not check_authentication.status_code == 200:
+            return Response({'error': 'Unidentified API'},
+                            status=status.HTTP_400_BAD_REQUEST)
+        user = Authentication.objects.get(id=pk).first()
+        if not user:
+            return Response({'error': 'User does not exist'},
+                            status=status.HTTP_400_BAD_REQUEST)
+        user.delete()
+        return Response(status=status.HTTP_200_OK)
