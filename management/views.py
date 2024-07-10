@@ -298,7 +298,7 @@ class UserInfoView(ViewSet):
 class UserOperations(ViewSet):
     @swagger_auto_schema(
         operation_description="Operations on users",
-        operation_summary="Excecute requested operations",
+        operation_summary="Return all users",
         responses={200: 'Operation is completed'},
         request_body=AuthMeSerializer,
         tags=['get']
