@@ -271,8 +271,8 @@ class UserInfoView(ViewSet):
     def auth_me(self, request, *args, **kwargs):
         serializer = AuthMeSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
-            uuid = serializer.validated_data['token']
-            check_data = {"token": f"{uuid}"}
+            token_uuid = serializer.validated_data['token']
+            check_data = {"token": f"{token_uuid}"}
             check_authentication = requests.post('http://134.122.76.27:8114/api/v1/check/', json=check_data)
 
             if not check_authentication.status_code == 200:
