@@ -350,7 +350,7 @@ class UserOperations(ViewSet):
         responses={200: 'Operation is completed'},
         request_body=UserOperationsSerializer
     )
-    def delete_user_by_id(self, request, pk):
+    def delete_user_by_id(self, request):
 
         token_uuid = request.data['token']
         check_data = {"token": f"{token_uuid}"}
@@ -359,7 +359,7 @@ class UserOperations(ViewSet):
         if not check_authentication.status_code == 200:
             return Response({'error': 'Unidentified API'},
                             status=status.HTTP_400_BAD_REQUEST)
-        user = Authentication.objects.get(id=pk).first()
+        user = Authentication.objects.get(id=request.data['user_id']).first()
         if not user:
             return Response({'error': 'User does not exist'},
                             status=status.HTTP_400_BAD_REQUEST)
