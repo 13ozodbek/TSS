@@ -10,6 +10,7 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = Authentication
         fields = (
+            'id',
             'username',
             'email',
             'first_name',
@@ -105,3 +106,6 @@ class LoginSerializer(serializers.Serializer):
 
 # class AuthMicroservicesSerializer(serializers.Serializer):
 #     uuid = serializers.CharField()
+
+class AuthMeSerializer(serializers.Serializer):
+    uuid = serializers.CharField()
