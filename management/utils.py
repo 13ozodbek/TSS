@@ -18,6 +18,7 @@ def send_otp_code(otp_obj):
     return response
 
 
+
 def generate_random_number():
     return random.randint(1000, 9999)
 

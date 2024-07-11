@@ -316,7 +316,7 @@ class UserOperations(ViewSet):
                                 status=status.HTTP_400_BAD_REQUEST)
 
             users = Authentication.objects.all()
-            return Response(users.data,
+            return Response(UserSerializer(users, many=True).data,
                             status=status.HTTP_200_OK)
 
     @swagger_auto_schema(
