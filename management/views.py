@@ -306,7 +306,7 @@ class UserOperations(ViewSet):
     def get_users(self, request):
         serializer = AuthMeSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
-            token_uuid = serializer.data['token']
+            token_uuid = serializer.validated_data['token']
             check_data = {"token": f"{token_uuid}"}
             check_authentication = requests.post('http://134.122.76.27:8114/api/v1/check/',
                                                  json=check_data)
