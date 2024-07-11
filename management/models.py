@@ -13,6 +13,12 @@ otp_types = (
     (2, 'resend'),
     (3, 'reset'),
 )
+user_type = (
+    (1, 'admin'),
+    (2, 'user'),
+    (3, 'superuser'),
+    (4, 'staff'),
+)
 
 class Authentication(AbstractUser):
     username = models.CharField(unique=True, max_length=255)
@@ -20,6 +26,7 @@ class Authentication(AbstractUser):
     age = models.IntegerField(default=1, null=True)
     gender = models.IntegerField(choices=gender_types, default=1, null=True)
     workplace = models.CharField(max_length=255, default='Apple', null=True)
+    user_type = models.IntegerField(choices=user_type, default=2)
 
 
     is_verified = models.BooleanField(default=False)

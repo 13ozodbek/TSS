@@ -112,6 +112,3 @@ class AuthMeSerializer(serializers.Serializer):
     token = serializers.CharField()
 
 
-class UserOperationsSerializer(serializers.Serializer):
-    user_id = serializers.IntegerField()
-    token = serializers.CharField()

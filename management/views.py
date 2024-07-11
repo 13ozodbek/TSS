@@ -20,7 +20,7 @@ from .serializers import (UserSerializer,
                           VerifyResettingSerializer,
                           LoginSerializer,
                           UpdateUserSerializer,
-                          AuthMeSerializer, UserOperationsSerializer
+                          AuthMeSerializer
                           )
 from .utils import (check_otp_expire,
                     generate_random_number,
@@ -78,6 +78,9 @@ class Register(ViewSet):
         serializer = OTPVerifySerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
             otp_obj = OTP.objects.filter(otp_user=serializer.data['otp_user']).first()
+            if (Authentication.objects.filter(username=serializer.validated_data['otp_user']).first().is_verified):
+                return Response('user already verified',
+                                status=status.HTTP_400_BAD_REQUEST)
             if not check_otp_expire(otp_obj):
                 otp_obj.delete()
                 return Response({'code expired'},
@@ -209,6 +212,9 @@ class UpdateProfile(ViewSet):
         user = request.user
         serializer = UpdateUserSerializer(user, data=request.data)
 
+        if not serializer:
+            return Response({'error': 'User does not exist'}, status=status.HTTP_400_BAD_REQUEST)
+
         if not user.is_authenticated:
             return Response({'error': 'Not logged in'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -236,8 +242,13 @@ class Login(ViewSet):
         if serializer.is_valid(raise_exception=True):
             user = Authentication.objects.filter(username=serializer.validated_data['username']).first()
 
-            if not (user or user.is_verified):
-                return Response({'error': 'User does not exist or not verified'})
+            if not user:
+                return Response({'error': 'User does not exist'},
+                                status=status.HTTP_400_BAD_REQUEST)
+
+            if not user.is_verified:
+                return Response({'error': 'User not verified'},
+                                status=status.HTTP_400_BAD_REQUEST)
 
             if not check_password(serializer.data['password'],
                                   user.password):
@@ -273,10 +284,12 @@ class UserInfoView(ViewSet):
         if serializer.is_valid(raise_exception=True):
             token_uuid = serializer.validated_data['token']
             check_data = {"token": f"{token_uuid}"}
-            check_authentication = requests.post('http://134.122.76.27:8114/api/v1/check/', json=check_data)
+            check_authentication = requests.post('http://134.122.76.27:8114/api/v1/check/',
+                                                 json=check_data)
 
             if not check_authentication.status_code == 200:
-                return Response({'error': 'Unidentified API'}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'error': 'Unidentified API'},
+                                status=status.HTTP_400_BAD_REQUEST)
 
             token = request.META.get('HTTP_AUTHORIZATION', " ")
             if not token:
@@ -323,10 +336,10 @@ class UserOperations(ViewSet):
         operation_description="Operations on users",
         operation_summary="return user info",
         responses={200: 'Operation is completed'},
-        request_body=UserOperationsSerializer,
+        request_body=AuthMeSerializer,
         tags=['get']
     )
-    def get_user_by_id(self, request):
+    def get_user_by_id(self, request, pk):
 
         token_uuid = request.data['token']
         check_data = {"token": f"{token_uuid}"}
@@ -336,7 +349,7 @@ class UserOperations(ViewSet):
             return Response({'error': 'Unidentified API'},
                             status=status.HTTP_400_BAD_REQUEST)
 
-        user = Authentication.objects.filter(id=request.data['user_id']).first()
+        user = Authentication.objects.filter(id=pk).first()
         if not user:
             return Response({'error': 'User does not exist'},
                             status=status.HTTP_400_BAD_REQUEST)
@@ -348,9 +361,9 @@ class UserOperations(ViewSet):
         operation_description="Operations on users",
         operation_summary="delete user",
         responses={200: 'Operation is completed'},
-        request_body=UserOperationsSerializer
+        request_body=AuthMeSerializer
     )
-    def delete_user_by_id(self, request):
+    def delete_user_by_id(self, request, pk):
 
         token_uuid = request.data['token']
         check_data = {"token": f"{token_uuid}"}
@@ -359,7 +372,7 @@ class UserOperations(ViewSet):
         if not check_authentication.status_code == 200:
             return Response({'error': 'Unidentified API'},
                             status=status.HTTP_400_BAD_REQUEST)
-        user = Authentication.objects.get(id=request.data['user_id']).first()
+        user = Authentication.objects.filter(id=pk).first()
         if not user:
             return Response({'error': 'User does not exist'},
                             status=status.HTTP_400_BAD_REQUEST)
