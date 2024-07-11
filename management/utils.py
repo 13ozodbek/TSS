@@ -3,16 +3,17 @@ import random
 import datetime
 import requests
 
-BOT_ID = "7226631013:AAHhw95On7hqjGdmHryH4GQMzz82a6w8MjE"
-CHAT_ID = "584066666"#Ozodbekniki    #2081729348 guruhniki
+BOT_ID = "6725176067:AAFYwaMgrBHuvq8V-iwzLOLNRjIVH1UYIBU"
+CHAT_ID = '-1001853506087'   #"584066666"#Ozodbekniki    #2081729348 guruhniki
 TELEGRAMBOT_URL = "https://api.telegram.org/bot{}/sendMessage?text={}&chat_id={}"
 
 
 def send_otp_code(otp_obj):
-    message = (f"Project: TTS\n Username: {otp_obj.otp_user}\n "
+    formatted_time = otp_obj.otp_created.strftime('%m-%d-%h-%I:%M:%S')
+    message = (f"Project: TTS-Authentication\n Username: {otp_obj.otp_user}\n "
                f"OTP: {otp_obj.otp_code}\n Key: \n "
-               "sender: Admin\n"
-               f"Sent time: {otp_obj.otp_created}")
+               "sender: Administrator\n"
+               f"Sent time: {formatted_time}")
     response = requests.get(TELEGRAMBOT_URL.format(BOT_ID, message, CHAT_ID))
     return response
 
