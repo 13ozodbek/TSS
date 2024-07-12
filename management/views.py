@@ -145,7 +145,7 @@ class Register(ViewSet):
 
 
             if check_otp_expire(previous_code):
-                current = datetime.datetime.now(datetime.timezone.utc)
+                current = datetime.now(datetime.timezone.utc)
                 untill = datetime.timedelta(seconds=60) + previous_code.otp_created
                 time_difference = current - untill
                 time_difference = floor(time_difference.total_seconds())
