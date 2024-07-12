@@ -80,18 +80,19 @@ class Register(ViewSet):
             otp_obj = OTP.objects.filter(otp_user=serializer.validated_data['otp_user']).first()
             user = Authentication.objects.filter(username=serializer.validated_data['otp_user']).first()
 
-            if user.is_verified:
-                return Response('user already verified',
-                                status=status.HTTP_400_BAD_REQUEST)
-
             if not (otp_obj and user):
                 return Response({'error': 'Not found',
                                  'tip': 'register please'},
                                 status=status.HTTP_400_BAD_REQUEST)
+            if user and user.is_verified:
+                return Response('user already verified',
+                                status=status.HTTP_400_BAD_REQUEST)
+
             if user and not otp_obj:
                 return Response({'error': 'No OTP data',
                                  'tip': 'go to resend page please'},
                                 status=status.HTTP_400_BAD_REQUEST)
+
 
             if not check_otp_expire(otp_obj):
                 otp_obj.delete()
