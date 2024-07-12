@@ -77,10 +77,22 @@ class Register(ViewSet):
     def verify(self, request):
         serializer = OTPVerifySerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
-            otp_obj = OTP.objects.filter(otp_user=serializer.data['otp_user']).first()
-            if (Authentication.objects.filter(username=serializer.validated_data['otp_user']).first().is_verified):
+            otp_obj = OTP.objects.filter(otp_user=serializer.validated_data['otp_user']).first()
+            user = Authentication.objects.filter(username=serializer.validated_data['otp_user']).first()
+
+            if user.is_verified:
                 return Response('user already verified',
                                 status=status.HTTP_400_BAD_REQUEST)
+
+            if not (otp_obj and user):
+                return Response({'error': 'Not found',
+                                 'tip': 'register please'},
+                                status=status.HTTP_400_BAD_REQUEST)
+            if user and not otp_obj:
+                return Response({'error': 'No OTP data',
+                                 'tip': 'go to resend page please'},
+                                status=status.HTTP_400_BAD_REQUEST)
+
             if not check_otp_expire(otp_obj):
                 otp_obj.delete()
                 return Response({'code expired'},
@@ -103,7 +115,7 @@ class Register(ViewSet):
 
     @swagger_auto_schema(
         operation_description="Resend OTP code",
-        operation_summary="Resen user new OTP",
+        operation_summary="Resend user new OTP",
         responses={200: ''},
         request_body=OTPResendVerifySerializer,
         tags=['auth']
