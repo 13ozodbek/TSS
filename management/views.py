@@ -406,5 +406,8 @@ class UserOperations(ViewSet):
         if not user:
             return Response({'error': 'User does not exist'},
                             status=status.HTTP_400_BAD_REQUEST)
+        if user.id ==1:
+            return Response({"RESTRICTED': 'FIRST USER CAN'T BE DELETED"},
+                            status=status.HTTP_403_FORBIDDEN)
         user.delete()
         return Response(status=status.HTTP_200_OK)
