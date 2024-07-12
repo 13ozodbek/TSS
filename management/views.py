@@ -190,6 +190,9 @@ class ResetPassword(ViewSet):
         if serializer.is_valid(raise_exception=True):
             otp_check = OTP.objects.filter(otp_user=serializer.data['username'],
                                            otp_code=serializer.data['otp_code']).first()
+            if not otp_check:
+                return Response({'error': 'No OTP data'},
+                                 status=status.HTTP_400_BAD_REQUEST)
 
             if serializer.data['password'] != serializer.data['password_repeat']:
                 return Response({'error': 'Passwords do not match'})
