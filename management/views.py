@@ -6,10 +6,10 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ViewSet
-import datetime
-from datetime import datetime
+import  datetime
+from datetime import datetime, timedelta
 from rest_framework_simplejwt.authentication import JWTAuthentication
-
+from django.utils import timezone
 from config.settings import SECRET_KEY
 from .models import (Authentication,
                      OTP)
@@ -145,8 +145,8 @@ class Register(ViewSet):
 
 
             if check_otp_expire(previous_code):
-                current = datetime.now(datetime.timezone.utc)
-                untill = datetime.timedelta(seconds=60) + previous_code.otp_created
+                current = timezone.now()
+                untill = timedelta(seconds=60) + previous_code.otp_created
                 time_difference = current - untill
                 time_difference = floor(time_difference.total_seconds())
                 return Response({f'Try again after {time_difference} seconds'},
