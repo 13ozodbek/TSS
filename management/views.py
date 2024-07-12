@@ -125,12 +125,22 @@ class Register(ViewSet):
     def resend(self, request, *args, **kwargs):
         serializer = OTPResendVerifySerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
-            previous_code = OTP.objects.filter(otp_user=serializer.data['otp_user']).first()
-            existing_user = Authentication.objects.filter(username=serializer.data['otp_user']).first()
+            previous_code = OTP.objects.filter(otp_user=serializer.validated_data['otp_user']).first()
+            existing_user = Authentication.objects.filter(username=serializer.validated_data['otp_user']).first()
 
-            if existing_user.is_verified:
+            if existing_user and existing_user.is_verified:
                 return Response({'user already verified'},
                                 status=status.HTTP_200_OK)
+            if not previous_code:
+                new_code = OTP.objects.create(otp_user=serializer.data['otp_user'],
+                                              otp_type=2,
+                                              otp_code=generate_random_number(), )
+                send_otp_code(new_code)
+                new_code.save()
+                return Response(data={'code sent'},
+                                status=status.HTTP_200_OK)
+
+
             if check_otp_expire(previous_code):
                 current = datetime.datetime.now(datetime.timezone.utc)
                 untill = datetime.timedelta(seconds=60) + previous_code.otp_created
