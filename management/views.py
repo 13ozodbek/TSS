@@ -6,8 +6,7 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ViewSet
-import  datetime
-from datetime import datetime, timedelta
+from datetime import timedelta
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.utils import timezone
 from config.settings import SECRET_KEY
