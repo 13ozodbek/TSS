@@ -127,6 +127,9 @@ class Register(ViewSet):
         if serializer.is_valid(raise_exception=True):
             previous_code = OTP.objects.filter(otp_user=serializer.validated_data['otp_user']).first()
             existing_user = Authentication.objects.filter(username=serializer.validated_data['otp_user']).first()
+            if not existing_user:
+                return Response({'error': 'Register please'},
+                                status= status.HTTP_400_BAD_REQUEST)
 
             if existing_user and existing_user.is_verified:
                 return Response({'user already verified'},
