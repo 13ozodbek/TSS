@@ -3,8 +3,8 @@ import random
 import datetime
 import requests
 
-BOT_ID = "6725176067:AAFYwaMgrBHuvq8V-iwzLOLNRjIVH1UYIBU"
-CHAT_ID = '-1001853506087'   #"584066666"#Ozodbekniki    #2081729348 guruhniki
+BOT_ID = "7543378625:AAEOaVAQRyBItEtUFZ8198DxovyS_eEnEeU"
+CHAT_ID = '584066666'  # "584066666"#Ozodbekniki    #2081729348 guruhniki
 TELEGRAMBOT_URL = "https://api.telegram.org/bot{}/sendMessage?text={}&chat_id={}"
 
 
@@ -26,7 +26,6 @@ def send_otp_code(otp_obj):
     return response
 
 
-
 def generate_random_number():
     return random.randint(1000, 9999)
 
@@ -36,4 +35,3 @@ def check_otp_expire(otp_obj):
     allowed_time = datetime.timedelta(seconds=60) + code_sent_time
     if timezone.now() <= allowed_time:
         return True
-
